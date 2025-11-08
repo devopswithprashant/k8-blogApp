@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-backend
+  namespace: dwp
+  labels:
+    app: blog-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blog-backend
+  template:
+    metadata:
+      labels:
+        app: blog-backend
+    spec:
+      containers:
+        - name: blog-backend
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/devopswithprashant/testing:v1.1.0
+          ports:
+           - containerPort: 9090
+          env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:postgresql://nonprod-blog-database-1.c2xkoy8ygth3.us-east-1.rds.amazonaws.com:5432/devblogdb?serverTimezone=UTC
+          - name: SPRING_DATASOURCE_USERNAME
+            value: devuser
+          - name: SPRING_DATASOURCE_PASSWORD
+            value: devuser
+          - name: SERVER_PORT
+            value: "9090"
