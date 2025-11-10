@@ -1,0 +1,52 @@
+name: 'Deploy'
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+
+permissions:
+  contents: read
+  id-token: write # <--- REQUIRED for OIDC
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+
+jobs:
+  Deploy-K8:
+    name: 'Deploy-K8'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    #- name: Checkout
+    #  uses: actions/checkout@v4
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v3
+    #   with:
+    #     terraform_version: "1.13.5"
+    
+    # configure AWS Credentials 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v5
+      with:
+        aws-region: us-east-1
+        role-session-name: GitHubActionsTerraform
+        role-to-assume: ${{ secrets.AWS_SSM_ROLE }}
+
+    - name: AWS Send Command
+      run: aws --version
+    
+    
