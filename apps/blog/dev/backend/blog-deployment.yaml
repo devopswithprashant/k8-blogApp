@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: blog-backend
-          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/devopswithprashant/testing:v1.1.0
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/np/blog:latest
           ports:
            - containerPort: 9090
           env:
@@ -29,3 +29,7 @@ spec:
             value: devuser
           - name: SERVER_PORT
             value: "9090"
+
+
+
+            

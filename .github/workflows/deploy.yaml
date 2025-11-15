@@ -28,74 +28,75 @@ jobs:
         shell: bash
 
     steps:
-    
-    # configure AWS Credentials 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v5
-      with:
-        aws-region: us-east-1
-        role-session-name: GitHubActionsTerraform
-        role-to-assume: ${{ secrets.AWS_SSM_ROLE }}
 
-    - name: AWS Send Command
-      run: |
-        #aws ssm send-command --document-name "K8SDeployer" --comment "K8 Deployment from GitHub Actions" --targets Key=tag:Name,Values=eks-bastion-blogapp --parameters awsRegion=us-east-1,clusterName=blogapp-cluster --region us-east-1
-        COMMAND_ID=$(aws ssm send-command \
-          --document-name "K8SDeployer" \
-          --comment "K8 Deployment from GitHub Actions" \
-          --targets Key=tag:Name,Values=eks-bastion-blogapp \
-          --parameters awsRegion=us-east-1,clusterName=blogapp-cluster \
-          --region us-east-1 \
-          --query "Command.CommandId" \
-          --output text)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-region: us-east-1
+          role-session-name: GitHubActionsTerraform
+          role-to-assume: ${{ secrets.AWS_SSM_ROLE }}
 
-        echo "Command sent. Command ID: $COMMAND_ID"
-        
-        echo "Waiting for command to complete..."
+      - name: Directory to update on K8
+        run: echo "changeDir=apps/blog/dev" >> $GITHUB_ENV
 
-        STATUS="InProgress"
+      - name: AWS Send Command
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --document-name "K8SDeployer" \
+            --comment "K8 Deployment from GitHub Actions" \
+            --targets Key=tag:Name,Values=eks-bastion-blogapp \
+            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,manifestDirectory=$changeDir \
+            --region us-east-1 \
+            --query "Command.CommandId" \
+            --output text)
 
-        # Poll until the status changes to success/failed/etc.
-        while [[ "$STATUS" == "InProgress" || "$STATUS" == "Pending" ]]; do
-          sleep 5
-          STATUS=$(aws ssm list-command-invocations \
+          echo "Command sent. Command ID: $COMMAND_ID"
+          
+          echo "Waiting for command to complete..."
+
+          STATUS="InProgress"
+
+          # Poll until the status changes to success/failed/etc.
+          while [[ "$STATUS" == "InProgress" || "$STATUS" == "Pending" ]]; do
+            sleep 5
+            STATUS=$(aws ssm list-command-invocations \
+              --command-id "$COMMAND_ID" \
+              --details \
+              --query "CommandInvocations[0].Status" \
+              --output text)
+            echo "Current status: $STATUS"
+          done
+
+          echo "-------------------------------------"
+          echo "Command completed with status: $STATUS"
+          echo "-------------------------------------"
+
+          # Fetch logs (we will store them for clarity)
+          STDOUT=$(aws ssm list-command-invocations \
             --command-id "$COMMAND_ID" \
             --details \
-            --query "CommandInvocations[0].Status" \
+            --query "CommandInvocations[0].CommandPlugins[0].Output" \
             --output text)
-          echo "Current status: $STATUS"
-        done
 
-        echo "-------------------------------------"
-        echo "Command completed with status: $STATUS"
-        echo "-------------------------------------"
+          STDERR=$(aws ssm list-command-invocations \
+            --command-id "$COMMAND_ID" \
+            --details \
+            --query "CommandInvocations[0].CommandPlugins[0].ResponseCode" \
+            --output text)
 
-        # Fetch logs (we will store them for clarity)
-        STDOUT=$(aws ssm list-command-invocations \
-          --command-id "$COMMAND_ID" \
-          --details \
-          --query "CommandInvocations[0].CommandPlugins[0].Output" \
-          --output text)
-
-        STDERR=$(aws ssm list-command-invocations \
-          --command-id "$COMMAND_ID" \
-          --details \
-          --query "CommandInvocations[0].CommandPlugins[0].ResponseCode" \
-          --output text)
-
-        echo "------ OUTPUT LOG ------"
-        echo "$STDOUT"
-        echo "------------------------"
-
-        # If status is NOT success → Exit with error
-        if [[ "$STATUS" != "Success" ]]; then
-          echo "❌ Deployment Failed!"
-          echo "------ ERROR CODE ------"
-          echo "$STDERR"
+          echo "------ OUTPUT LOG ------"
+          echo "$STDOUT"
           echo "------------------------"
-          exit 1
-        fi
 
-        # echo "✅ Deployment completed successfully!"
+          # If status is NOT success → Exit with error
+          if [[ "$STATUS" != "Success" ]]; then
+            echo "❌ Deployment Failed!"
+            echo "------ ERROR CODE ------"
+            echo "$STDERR"
+            echo "------------------------"
+            exit 1
+          fi
+
+          echo "✅ Deployment completed successfully!"
             
             
