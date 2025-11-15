@@ -105,12 +105,15 @@ jobs:
             echo "exiting..."
             exit 1;
           fi
+          echo "appName = $appName"
 
-          if [[ $envName != "dev" ]]; then
-            echo "Not able to find change in correct app, invalid envName $envName"
+          if [[ $envName != "dev" ]] || [[ $envName != "qa" ]] || [[ $envName != "stage" ]] || [[ $envName != "prod" ]]; then
+            echo "Not able to find change in correct env, invalid envName $envName"
             echo "exiting..."
             exit 1;
           fi
+
+          echo "appName = $envName"
           
           if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'refs/heads/main' ]]; then
             echo "Cannot deploy prod changes in non-default branch"
