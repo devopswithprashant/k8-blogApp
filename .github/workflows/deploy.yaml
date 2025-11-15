@@ -129,11 +129,12 @@ jobs:
             echo "exiting..."
             exit 1;
           fi
+          
           COMMAND_ID=$(aws ssm send-command \
             --document-name "K8SDeployer" \
             --comment "K8 Deployment from GitHub Actions" \
             --targets Key=tag:Name,Values=eks-bastion-blogapp \
-            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,manifestDirectory=$changeDir \
+            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,gitRef=${{ github.ref_name }},manifestDirectory=$changeDir \
             --region us-east-1 \
             --query "Command.CommandId" \
             --output text)
