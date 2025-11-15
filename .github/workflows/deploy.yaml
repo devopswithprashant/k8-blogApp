@@ -2,8 +2,13 @@ name: 'Deploy'
 
 on:
   push:
-    branches: [ "main" ]
+    paths:
+      - 'apps/**' 
   pull_request:
+    #paths:
+      #- 'src/**'
+      #- 'config/*.yml'
+
 
 
 permissions:
@@ -20,13 +25,11 @@ jobs:
   Deploy-K8:
     name: 'Deploy-K8'
     runs-on: ubuntu-latest
-    environment: dev
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
-
     steps:
 
       - name: Configure AWS Credentials
@@ -36,11 +39,99 @@ jobs:
           role-session-name: GitHubActionsTerraform
           role-to-assume: ${{ secrets.AWS_SSM_ROLE }}
 
-      - name: Directory to update on K8
-        run: echo "changeDir=apps/blog/dev" >> $GITHUB_ENV
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+            fetch-depth: 10
+      
+      - name: Determine before/after SHAs
+        id: shas
+        run: |
+          set -euo pipefail
+          echo "BEFORE=${{ github.event.before }}" >> $GITHUB_ENV
+          echo "AFTER=${{ github.sha }}" >> $GITHUB_ENV
+
+          # Ensure changed.txt exists (empty if none)
+          : > changed.txt
+
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            # branch created or first commit — list files in the AFTER commit
+            git diff --name-only "${AFTER}" > changed.txt || true
+          else
+            git diff --name-only "${BEFORE}" "${AFTER}" > changed.txt || true
+          fi
+
+          echo "Changed files (raw):"
+          sed -n '1,200p' changed.txt || true
+
+          # write to step output using GITHUB_OUTPUT
+          CHANGED_RAW=$(sed -z 's/\n/|/g' changed.txt || true)
+          echo "files=${CHANGED_RAW}" >> "$GITHUB_OUTPUT"
+
+          # create file even if grep finds nothing
+          : > files_under_apps.txt
+
+          # Filter only relevant files under apps/ into files_under_apps.txt (no failure if none)
+          grep -E '^apps/' changed.txt > files_under_apps.txt || true
+
+          # Debug
+          echo "Files under apps/:"
+          sed -n '1,200p' files_under_apps.txt || true
+
+          # If you want dirs up to apps/<team>/<app>/overlays/<env>,
+          # that's first 5 path segments: apps/team/app/overlays/env
+          # Adjust the awk field count if your layout is different.
+          : > changed_dirs.txt
+          awk -F'/' 'NF >= 5 { print $1"/"$2"/"$3"/"$4"/"$5 } NF < 5 { if (NF>0) print $0 }' files_under_apps.txt \
+            | sort -u > changed_dirs.txt || true
+
+          # produce comma-separated list and JSON array
+          if [ -s changed_dirs.txt ]; then
+            CSV=$(paste -sd, changed_dirs.txt)
+            # Create JSON array using jq (one item per line)
+            JSON_ARR=$(jq -R -s -c 'split("\n")[:-1]' changed_dirs.txt)
+          else
+            CSV=""
+            JSON_ARR="[]"
+          fi
+
+          echo "dirs_csv=${CSV}" >> "$GITHUB_OUTPUT"
+          echo "dirs_json=${JSON_ARR}" >> "$GITHUB_OUTPUT"
+          # also export for later steps (optional)
+          echo "FOUND_DIRS=${CSV}" >> $GITHUB_ENV
+          echo "FOUND_DIRS_JSON=${JSON_ARR}" >> $GITHUB_ENV
+
+          rootDir=$(echo $CSV | cut -d / -f 1)
+
+          appName=$(echo $CSV | cut -d / -f 2)
+          envName=$(echo $CSV | cut -d / -f 3)
+
+          if [[ $appName != "blog" ]]; then
+            echo "Not able to find change in correct app, invalid appName $appName"
+            echo "exiting..."
+            exit 1;
+          fi
+
+          if [[ $envName != "dev" ]]; then
+            echo "Not able to find change in correct app, invalid envName $envName"
+            echo "exiting..."
+            exit 1;
+          fi
+          
+          if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'refs/heads/main' ]]; then
+            echo "Cannot deploy prod changes in non-default branch"
+            echo "exiting..."
+            exit 1;
+          fi
+          echo "changeDir=apps/${appName}/${envName}" >> $GITHUB_ENV
 
       - name: AWS Send Command
         run: |
+          if [[ -z "${changeDir}" ]]; then
+            echo "ChangeDir variable cannot be empty in order to proceed with deployment"
+            echo "exiting..."
+            exit 1;
+          fi
           COMMAND_ID=$(aws ssm send-command \
             --document-name "K8SDeployer" \
             --comment "K8 Deployment from GitHub Actions" \
