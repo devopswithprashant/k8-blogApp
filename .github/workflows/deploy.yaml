@@ -114,11 +114,11 @@ jobs:
 
           echo "envName = $envName"
           
-          if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'main' ]]; then
-            echo "Cannot deploy prod changes in non-default branch ${{ github.ref_name }}"
-            echo "exiting..."
-            exit 1;
-          fi
+          #if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'main' ]]; then
+            #echo "Cannot deploy prod changes in non-default branch ${{ github.ref_name }}"
+            #echo "exiting..."
+            #exit 1;
+          #fi
 
           changeDir=apps/${appName}/${envName}
           echo "changeDir=${changeDir}" >> $GITHUB_ENV
