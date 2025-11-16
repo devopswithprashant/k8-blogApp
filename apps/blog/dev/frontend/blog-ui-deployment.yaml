@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: blog-frontend
-  namespace: dwp
+  namespace: dwp-dev
   labels:
     app: blog-frontend
 spec:
