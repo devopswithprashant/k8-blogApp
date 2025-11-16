@@ -122,6 +122,7 @@ jobs:
 
           changeDir=apps/${appName}/${envName}
           echo "changeDir=${changeDir}" >> $GITHUB_ENV
+          echo "envName=$envName" >> $GITHUB_ENV
 
           namespaceFile=${changeDir}/namespace/namespace.yaml
           namespaceName=$(grep -E "name:" $namespaceFile | sed 's/.*name:[[:space:]]*//')
@@ -130,12 +131,25 @@ jobs:
 
       - name: AWS Send Command
         run: |
+          eksBastionName=eks-bastion-blogapp
+          eksClusterName=blogapp-cluster
+          if [[ $envName == prod ]]; then
+            eksBastionName=eks-bastion-prod-blogapp
+            eksClusterName=blogapp-prod-cluster
+            echo "============================="
+            echo "============================="
+            echo "                             "
+            echo "    P R O D U C T I O N      "
+            echo "                             "
+            echo "============================="
+            echo "============================="
+          fi
 
           COMMAND_ID=$(aws ssm send-command \
             --document-name "K8SDeployer" \
             --comment "K8 Deployment from GitHub Actions" \
-            --targets Key=tag:Name,Values=eks-bastion-blogapp \
-            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,gitRef=${{ github.ref_name }},manifestDirectory=$changeDir,k8namespace=$namespaceName \
+            --targets Key=tag:Name,Values=${eksBastionName} \
+            --parameters awsRegion=us-east-1,clusterName=${eksClusterName},gitRef=${{ github.ref_name }},manifestDirectory=$changeDir,k8namespace=$namespaceName \
             --region us-east-1 \
             --query "Command.CommandId" \
             --output text)
