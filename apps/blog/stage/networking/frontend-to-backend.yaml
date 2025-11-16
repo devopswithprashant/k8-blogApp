@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-to-backend
+  namespace: dwp-stage
+spec:
+  podSelector:
+    matchLabels:
+      app: blog-backend
+  policyTypes:
+  - Ingress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: blog-frontend
+      ports:
+        - protocol: TCP
+          port: 9090
