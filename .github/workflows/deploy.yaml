@@ -40,8 +40,8 @@ jobs:
         with:
             fetch-depth: 10
       
-      - name: Determine before/after SHAs
-        id: shas
+      - name: Determine the change env by before/after SHAs
+        id: find_change_env
         run: |
           set -euo pipefail
           BEFORE=${{ github.event.before }}
@@ -115,9 +115,9 @@ jobs:
           echo "envName = $envName"
           
           if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'main' ]]; then
-            echo "Cannot deploy prod changes in non-default branch ${{ github.ref_name }}"
-            echo "exiting..."
-            exit 1;
+            echo "PRODlower=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PRODlower=false" >> "$GITHUB_OUTPUT"
           fi
 
           changeDir=apps/${appName}/${envName}
@@ -130,6 +130,7 @@ jobs:
           echo "namespaceName=${namespaceName}" >> $GITHUB_ENV
 
       - name: AWS Send Command
+        if: ${{ steps.find_change_env.outputs.PRODlower == 'false' }}
         run: |
           eksBastionName=eks-bastion-blogapp
           eksClusterName=blogapp-cluster
