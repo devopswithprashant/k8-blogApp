@@ -119,7 +119,9 @@ jobs:
             echo "exiting..."
             exit 1;
           fi
-          echo "changeDir=apps/${appName}/${envName}" >> $GITHUB_ENV
+
+          changeDir=apps/${appName}/${envName}
+          echo "changeDir=${changeDir}" >> $GITHUB_ENV
 
           namespaceFile=${changeDir}/namespace/namespace.yaml
           namespaceName=$(grep -E "name:" $namespaceFile | sed 's/.*name:[[:space:]]*//')
