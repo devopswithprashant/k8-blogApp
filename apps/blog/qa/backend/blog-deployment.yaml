@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: blog-backend
-  namespace: dwp-dev
+  namespace: dwp-qa
   labels:
     app: blog-backend
 spec:
@@ -22,11 +22,11 @@ spec:
            - containerPort: 9090
           env:
           - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://nonprod-blog-database-1.c2xkoy8ygth3.us-east-1.rds.amazonaws.com:5432/devblogdb?serverTimezone=UTC
+            value: jdbc:postgresql://nonprod-blog-database-1.c2xkoy8ygth3.us-east-1.rds.amazonaws.com:5432/qablogdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
-            value: devuser
+            value: qauser
           - name: SPRING_DATASOURCE_PASSWORD
-            value: devuser
+            value: qauser
           - name: SERVER_PORT
             value: "9090"
 

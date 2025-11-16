@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: blog-frontend
-  namespace: dwp-dev
+  namespace: dwp-qa
   labels:
     app: blog-frontend
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: blog-frontend

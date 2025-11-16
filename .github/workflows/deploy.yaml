@@ -4,10 +4,6 @@ on:
   push:
     paths:
       - 'apps/**' 
-  pull_request:
-    #paths:
-      #- 'src/**'
-      #- 'config/*.yml'
 
 
 
@@ -48,8 +44,8 @@ jobs:
         id: shas
         run: |
           set -euo pipefail
-          echo "BEFORE=${{ github.event.before }}" >> $GITHUB_ENV
-          echo "AFTER=${{ github.sha }}" >> $GITHUB_ENV
+          BEFORE=${{ github.event.before }}
+          AFTER=${{ github.sha }}
 
           # Ensure changed.txt exists (empty if none)
           : > changed.txt
@@ -98,55 +94,56 @@ jobs:
           echo "dirs_csv=${CSV}" >> "$GITHUB_OUTPUT"
           echo "dirs_json=${JSON_ARR}" >> "$GITHUB_OUTPUT"
           # also export for later steps (optional)
-          echo "FOUND_DIRS=${CSV}" >> $GITHUB_ENV
-          echo "FOUND_DIRS_JSON=${JSON_ARR}" >> $GITHUB_ENV
 
           rootDir=$(echo $CSV | cut -d / -f 1)
-
           appName=$(echo $CSV | cut -d / -f 2)
           envName=$(echo $CSV | cut -d / -f 3)
 
           if [[ $appName != "blog" ]]; then
-            echo "Not able to find change in correct app, invalid appName $appName"
+            echo "Not able to find the change in correct app, invalid appName $appName"
+            echo "exiting..."
+            exit 1;
+          fi
+          echo "appName = $appName"
+
+          if [[ $envName != "dev" ]] && [[ $envName != "qa" ]] && [[ $envName != "stage" ]] && [[ $envName != "prod" ]]; then
+            echo "Not able to find the change in correct env, invalid envName $envName"
             echo "exiting..."
             exit 1;
           fi
 
-          if [[ $envName != "dev" ]]; then
-            echo "Not able to find change in correct app, invalid envName $envName"
-            echo "exiting..."
-            exit 1;
-          fi
+          echo "envName = $envName"
           
           if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'refs/heads/main' ]]; then
             echo "Cannot deploy prod changes in non-default branch"
             echo "exiting..."
             exit 1;
           fi
-          echo "changeDir=apps/${appName}/${envName}" >> $GITHUB_ENV
+
+          changeDir=apps/${appName}/${envName}
+          echo "changeDir=${changeDir}" >> $GITHUB_ENV
+
+          namespaceFile=${changeDir}/namespace/namespace.yaml
+          namespaceName=$(grep -E "name:" $namespaceFile | sed 's/.*name:[[:space:]]*//')
+
+          echo "namespaceName=${namespaceName}" >> $GITHUB_ENV
 
       - name: AWS Send Command
         run: |
-          if [[ -z "${changeDir}" ]]; then
-            echo "ChangeDir variable cannot be empty in order to proceed with deployment"
-            echo "exiting..."
-            exit 1;
-          fi
+
           COMMAND_ID=$(aws ssm send-command \
             --document-name "K8SDeployer" \
             --comment "K8 Deployment from GitHub Actions" \
             --targets Key=tag:Name,Values=eks-bastion-blogapp \
-            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,manifestDirectory=$changeDir \
+            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,gitRef=${{ github.ref_name }},manifestDirectory=$changeDir,k8namespace=$namespaceName \
             --region us-east-1 \
             --query "Command.CommandId" \
             --output text)
 
           echo "Command sent. Command ID: $COMMAND_ID"
-          
           echo "Waiting for command to complete..."
 
           STATUS="InProgress"
-
           # Poll until the status changes to success/failed/etc.
           while [[ "$STATUS" == "InProgress" || "$STATUS" == "Pending" ]]; do
             sleep 5
@@ -157,7 +154,6 @@ jobs:
               --output text)
             echo "Current status: $STATUS"
           done
-
           echo "-------------------------------------"
           echo "Command completed with status: $STATUS"
           echo "-------------------------------------"
