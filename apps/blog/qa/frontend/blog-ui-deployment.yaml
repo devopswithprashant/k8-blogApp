@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: blog-frontend
-  namespace: dwp-dev
+  namespace: dwp-qa
   labels:
     app: blog-frontend
 spec:
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/devopswithprashant/testing:v1.0.3
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/ui:v1.1.4
           ports:
             - containerPort: 80
           resources:

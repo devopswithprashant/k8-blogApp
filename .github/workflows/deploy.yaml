@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - 'apps/**' 
-  pull_request:
 
 
 
@@ -122,29 +121,27 @@ jobs:
           fi
           echo "changeDir=apps/${appName}/${envName}" >> $GITHUB_ENV
 
+          namespaceFile=${changeDir}/namespace/namespace.yaml
+          namespaceName=$(grep -E "name:" $namespaceFile | sed 's/.*name:[[:space:]]*//')
+
+          echo "namespaceName=${namespaceName}" >> $GITHUB_ENV
+
       - name: AWS Send Command
         run: |
-          if [[ -z "${changeDir}" ]]; then
-            echo "ChangeDir variable cannot be empty in order to proceed with deployment"
-            echo "exiting..."
-            exit 1;
-          fi
-          
+
           COMMAND_ID=$(aws ssm send-command \
             --document-name "K8SDeployer" \
             --comment "K8 Deployment from GitHub Actions" \
             --targets Key=tag:Name,Values=eks-bastion-blogapp \
-            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,gitRef=${{ github.ref_name }},manifestDirectory=$changeDir \
+            --parameters awsRegion=us-east-1,clusterName=blogapp-cluster,gitRef=${{ github.ref_name }},manifestDirectory=$changeDir,k8namespace=$namespaceName \
             --region us-east-1 \
             --query "Command.CommandId" \
             --output text)
 
           echo "Command sent. Command ID: $COMMAND_ID"
-          
           echo "Waiting for command to complete..."
 
           STATUS="InProgress"
-
           # Poll until the status changes to success/failed/etc.
           while [[ "$STATUS" == "InProgress" || "$STATUS" == "Pending" ]]; do
             sleep 5
@@ -155,7 +152,6 @@ jobs:
               --output text)
             echo "Current status: $STATUS"
           done
-
           echo "-------------------------------------"
           echo "Command completed with status: $STATUS"
           echo "-------------------------------------"
