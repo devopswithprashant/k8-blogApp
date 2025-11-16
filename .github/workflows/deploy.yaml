@@ -114,8 +114,8 @@ jobs:
 
           echo "envName = $envName"
           
-          if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'refs/heads/main' ]]; then
-            echo "Cannot deploy prod changes in non-default branch"
+          if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'main' ]]; then
+            echo "Cannot deploy prod changes in non-default branch ${{ github.ref_name }}"
             echo "exiting..."
             exit 1;
           fi
