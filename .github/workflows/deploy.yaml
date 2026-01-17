@@ -41,94 +41,6 @@ jobs:
         with:
             fetch-depth: 10
       
-      # - name: Determine the change env by before/after SHAs
-      #   id: find_change_env
-      #   run: |
-      #     set -euo pipefail
-      #     BEFORE=${{ github.event.before }}
-      #     AFTER=${{ github.sha }}
-
-      #     # Ensure changed.txt exists (empty if none)
-      #     : > changed.txt
-
-      #     if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
-      #       # branch created or first commit — list files in the AFTER commit
-      #       git diff --name-only "${AFTER}" > changed.txt || true
-      #     else
-      #       git diff --name-only "${BEFORE}" "${AFTER}" > changed.txt || true
-      #     fi
-
-      #     echo "Changed files (raw):"
-      #     sed -n '1,200p' changed.txt || true
-
-      #     # write to step output using GITHUB_OUTPUT
-      #     CHANGED_RAW=$(sed -z 's/\n/|/g' changed.txt || true)
-      #     echo "files=${CHANGED_RAW}" >> "$GITHUB_OUTPUT"
-
-      #     # create file even if grep finds nothing
-      #     : > files_under_apps.txt
-
-      #     # Filter only relevant files under apps/ into files_under_apps.txt (no failure if none)
-      #     grep -E '^apps/' changed.txt > files_under_apps.txt || true
-
-      #     # Debug
-      #     echo "Files under apps/:"
-      #     sed -n '1,200p' files_under_apps.txt || true
-
-      #     # If you want dirs up to apps/<team>/<app>/overlays/<env>,
-      #     # that's first 5 path segments: apps/team/app/overlays/env
-      #     # Adjust the awk field count if your layout is different.
-      #     : > changed_dirs.txt
-      #     awk -F'/' 'NF >= 5 { print $1"/"$2"/"$3"/"$4"/"$5 } NF < 5 { if (NF>0) print $0 }' files_under_apps.txt \
-      #       | sort -u > changed_dirs.txt || true
-
-      #     # produce comma-separated list and JSON array
-      #     if [ -s changed_dirs.txt ]; then
-      #       CSV=$(paste -sd, changed_dirs.txt)
-      #       # Create JSON array using jq (one item per line)
-      #       JSON_ARR=$(jq -R -s -c 'split("\n")[:-1]' changed_dirs.txt)
-      #     else
-      #       CSV=""
-      #       JSON_ARR="[]"
-      #     fi
-
-      #     echo "dirs_csv=${CSV}" >> "$GITHUB_OUTPUT"
-      #     echo "dirs_json=${JSON_ARR}" >> "$GITHUB_OUTPUT"
-      #     # also export for later steps (optional)
-
-      #     rootDir=$(echo $CSV | cut -d / -f 1)
-      #     appName=$(echo $CSV | cut -d / -f 2)
-      #     envName=$(echo $CSV | cut -d / -f 3)
-
-      #     if [[ $appName != "blog" ]]; then
-      #       echo "Not able to find the change in correct app, invalid appName $appName"
-      #       echo "exiting..."
-      #       exit 1;
-      #     fi
-      #     echo "appName = $appName"
-
-      #     if [[ $envName != "dev" ]] && [[ $envName != "qa" ]] && [[ $envName != "stage" ]] && [[ $envName != "prod" ]]; then
-      #       echo "Not able to find the change in correct env, invalid envName $envName"
-      #       echo "exiting..."
-      #       exit 1;
-      #     fi
-
-      #     echo "envName = $envName"
-          
-      #     if [[ $envName == prod ]] && [[ ${{ github.ref_name }} != 'main' ]]; then
-      #       echo "PRODlower=true" >> "$GITHUB_OUTPUT"
-      #     else
-      #       echo "PRODlower=false" >> "$GITHUB_OUTPUT"
-      #     fi
-
-      #     changeDir=apps/${appName}/${envName}
-      #     echo "changeDir=${changeDir}" >> $GITHUB_ENV
-      #     echo "envName=$envName" >> $GITHUB_ENV
-
-      #     namespaceFile=${changeDir}/namespace/namespace.yaml
-      #     namespaceName=$(grep -E "name:" $namespaceFile | sed 's/.*name:[[:space:]]*//')
-
-      #     echo "namespaceName=${namespaceName}" >> $GITHUB_ENV
 
       - name: Determine the change env by before/after SHAs
         id: find_change_env
@@ -244,78 +156,6 @@ jobs:
             echo "FIRST_APP=" >> "$GITHUB_ENV"
             echo "FIRST_ENV=" >> "$GITHUB_ENV"
           fi
-
-      # - name: AWS Send Command
-      #   if: ${{ steps.find_change_env.outputs.PRODlower == 'false' }}
-      #   run: |
-      #     eksBastionName=eks-bastion-blogapp
-      #     eksClusterName=blogapp-cluster
-      #     if [[ $envName == prod ]]; then
-      #       eksBastionName=eks-bastion-prod-blogapp
-      #       eksClusterName=blogapp-prod-cluster
-      #       echo "============================="
-      #       echo "============================="
-      #       echo "                             "
-      #       echo "    P R O D U C T I O N      "
-      #       echo "                             "
-      #       echo "============================="
-      #       echo "============================="
-      #     fi
-
-      #     COMMAND_ID=$(aws ssm send-command \
-      #       --document-name "K8SDeployer" \
-      #       --comment "K8 Deployment from GitHub Actions" \
-      #       --targets Key=tag:Name,Values=${eksBastionName} \
-      #       --parameters awsRegion=us-east-1,clusterName=${eksClusterName},gitRef=${{ github.ref_name }},manifestDirectory=$changeDir,k8namespace=$namespaceName \
-      #       --region us-east-1 \
-      #       --query "Command.CommandId" \
-      #       --output text)
-
-      #     echo "Command sent. Command ID: $COMMAND_ID"
-      #     echo "Waiting for command to complete..."
-
-      #     STATUS="InProgress"
-      #     # Poll until the status changes to success/failed/etc.
-      #     while [[ "$STATUS" == "InProgress" || "$STATUS" == "Pending" ]]; do
-      #       sleep 5
-      #       STATUS=$(aws ssm list-command-invocations \
-      #         --command-id "$COMMAND_ID" \
-      #         --details \
-      #         --query "CommandInvocations[0].Status" \
-      #         --output text)
-      #       echo "Current status: $STATUS"
-      #     done
-      #     echo "-------------------------------------"
-      #     echo "Command completed with status: $STATUS"
-      #     echo "-------------------------------------"
-
-      #     # Fetch logs (we will store them for clarity)
-      #     STDOUT=$(aws ssm list-command-invocations \
-      #       --command-id "$COMMAND_ID" \
-      #       --details \
-      #       --query "CommandInvocations[0].CommandPlugins[0].Output" \
-      #       --output text)
-
-      #     STDERR=$(aws ssm list-command-invocations \
-      #       --command-id "$COMMAND_ID" \
-      #       --details \
-      #       --query "CommandInvocations[0].CommandPlugins[0].ResponseCode" \
-      #       --output text)
-
-      #     echo "------ OUTPUT LOG ------"
-      #     echo "$STDOUT"
-      #     echo "------------------------"
-
-      #     # If status is NOT success → Exit with error
-      #     if [[ "$STATUS" != "Success" ]]; then
-      #       echo "❌ Deployment Failed!"
-      #       echo "------ ERROR CODE ------"
-      #       echo "$STDERR"
-      #       echo "------------------------"
-      #       exit 1
-      #     fi
-
-      #     echo "✅ Deployment completed successfully!"
 
 
       - name: AWS Send Command (loop per changed env)
@@ -445,14 +285,6 @@ jobs:
           echo "All non-prod deployments (if any) completed."
       
 
-      # - name: Create Pull Request to main
-      #   if: ${{ steps.find_change_env.outputs.PRODlower == 'true' }}
-      #   uses: peter-evans/create-pull-request@v6
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     base: main
-      #     head: ${{ github.ref_name }}
-      #     title: "Auto PR: ${{ github.ref_name }} → main"
-      #     body: "This PR was automatically generated by GitHub Actions."
+
             
             
