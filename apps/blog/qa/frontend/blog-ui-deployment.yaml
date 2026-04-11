@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/np/ui:1.1.7-1a2ff363a22b544d4daa8a2603b5be4d8cdd37a6
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/np/ui:1.1.8-SNAPSHOT-183de68ab37b1fbed435cb11dbc2a4658ea75b7d
           ports:
             - containerPort: 80
           resources:
