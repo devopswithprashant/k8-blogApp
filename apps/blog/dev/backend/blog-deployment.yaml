@@ -24,7 +24,7 @@ spec:
            - containerPort: 9090
           env:
           - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://localhost:5432/blogdb?serverTimezone=UTC
+            value: jdbc:postgresql://postgres:5432/blogdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
             value: bloguser
           - name: SPRING_DATASOURCE_PASSWORD
