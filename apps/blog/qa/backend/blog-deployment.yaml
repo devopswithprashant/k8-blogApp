@@ -22,7 +22,7 @@ spec:
            - containerPort: 9090
           env:
           - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://nonprod-blog-database-1.c2xkoy8ygth3.us-east-1.rds.amazonaws.com:5432/qablogdb?serverTimezone=UTC
+            value: jdbc:postgresql://dwp-platform-nonprod.ch8cowcymvme.eu-west-1.rds.amazonaws.com:5432/qablogdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
             value: qauser
           - name: SPRING_DATASOURCE_PASSWORD
