@@ -17,12 +17,12 @@ spec:
     spec:
       containers:
         - name: blog-backend
-          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.0.11
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.2.0
           ports:
            - containerPort: 9090
           env:
           - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://nonprod-blog-database-1.c2xkoy8ygth3.us-east-1.rds.amazonaws.com:5432/devblogdb?serverTimezone=UTC
+            value: jdbc:postgresql://dwp-platform-nonprod.ch8cowcymvme.eu-west-1.rds.amazonaws.com:5432/devblogdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
             value: devuser
           - name: SPRING_DATASOURCE_PASSWORD
