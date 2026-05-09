@@ -22,9 +22,9 @@ resources:
     memory: "2Gi"
 
 # ── Service ──────────────────────────────────────────────────
-# ClusterIP — access via port-forward or Ingress (see below)
+# LoadBalancer — exposes Kibana via external load balancer
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 5601
 
 # ── Ingress — expose Kibana via ALB on EKS ───────────────────
