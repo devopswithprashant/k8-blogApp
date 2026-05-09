@@ -30,7 +30,7 @@ resources:
 # Use gp3 if your EKS cluster has the gp3 storage class installed
 volumeClaimTemplate:
   accessModes: ["ReadWriteOnce"]
-  storageClassName: "gp2"            # ← EKS specific (was "standard" in minikube)
+  storageClassName: "gp2-csi"            # ← EKS specific (was "standard" in minikube)
   resources:
     requests:
       storage: "30Gi"                # ← EKS has real disk, use proper size
@@ -41,7 +41,7 @@ antiAffinity: "hard"                 # ← hard in EKS (was "soft" in minikube)
 
 persistence:
   enabled: true
-  storageClass: "gp2"              # ← add this line too
+  storageClass: "gp2-csi"              # ← add this line too
   size: "30Gi"
   accessMode: ReadWriteOnce
 
