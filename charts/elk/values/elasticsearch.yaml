@@ -41,6 +41,9 @@ antiAffinity: "hard"                 # ← hard in EKS (was "soft" in minikube)
 
 persistence:
   enabled: true
+  storageClass: "gp2"              # ← add this line too
+  size: "30Gi"
+  accessMode: ReadWriteOnce
 
 # ── Tolerations/Node selector ────────────────────────────────
 # Uncomment if you have dedicated logging nodes with taints
