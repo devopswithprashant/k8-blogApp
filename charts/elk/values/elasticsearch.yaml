@@ -2,7 +2,7 @@
 # Elasticsearch values — EKS production
 # ============================================================
 
-replicas: 2                          # 3 nodes for HA (1 master + 2 data)
+replicas: 1                         # 3 nodes for HA (1 master + 2 data)
 
 clusterName: "eks-elk-cluster"
 
