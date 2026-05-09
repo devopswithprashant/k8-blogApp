@@ -2,7 +2,7 @@
 # Logstash values — EKS production
 # ============================================================
 
-replicas: 2                          # 2 Logstash pods for HA + load distribution
+replicas: 1                          # 2 Logstash pods for HA + load distribution
 
 logstashConfig:
   logstash.yml: |
