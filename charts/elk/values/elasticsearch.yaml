@@ -1,5 +1,7 @@
 elasticsearch:
   replicas: 1
+  protocol: http
+  createCert: false 
   esConfig:
     elasticsearch.yml: |
       cluster.name: "minikube-elk"
