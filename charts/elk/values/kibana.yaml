@@ -1,4 +1,5 @@
 kibana:
+  protocol: http
   elasticsearchHosts: "http://elk-stack-elasticsearch-master:9200"
   kibanaConfig:
     kibana.yml: |

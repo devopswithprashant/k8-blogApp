@@ -1,4 +1,5 @@
 filebeat:
+  protocol: http
   daemonset:
     hostNetworking: true
   filebeatConfig:
