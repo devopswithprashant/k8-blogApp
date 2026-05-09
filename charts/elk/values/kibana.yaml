@@ -2,12 +2,12 @@
 # Kibana values — EKS production
 # ============================================================
 
-elasticsearchHosts: "http://elk-stack-elasticsearch-master:9200"
+elasticsearchHosts: "http://elasticsearch-master:9200"
 
 kibanaConfig:
   kibana.yml: |
     server.host: "0.0.0.0"
-    elasticsearch.hosts: ["http://elk-stack-elasticsearch-master:9200"]
+    elasticsearch.hosts: ["http://elasticsearch-master:9200"]
     xpack.security.enabled: false
     # Increase memory for larger dashboards
     server.maxPayloadBytes: 10485760

@@ -37,7 +37,7 @@ daemonset:
       monitoring.enabled: false
 
       output.logstash:
-        hosts: ["elk-stack-logstash:5044"]
+        hosts: ["elk-logging-logstash-headless:5044"]
         # Retry settings for EKS network blips
         timeout: 15
         max_retries: 3
