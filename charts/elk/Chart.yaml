@@ -1,5 +1,5 @@
 apiVersion: v2
-name: elk-stack
+name: elk-logging
 description: ELK stack umbrella chart for EKS
 version: 1.0.0
 type: application
