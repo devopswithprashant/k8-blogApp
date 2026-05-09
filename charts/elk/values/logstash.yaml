@@ -1,36 +1,41 @@
-logstash:
-  logstashConfig:
-    logstash.yml: |
-      http.host: "0.0.0.0"
-      xpack.monitoring.enabled: false
-  logstashPipeline:
-    logstash.conf: |
-      input { beats { port => 5044 } }
-      filter {
-        if [message] =~ /^{/ {
-          json { source => "message" }
-        }
-        if [message] =~ /health|readiness|liveness/ {
-          drop {}
-        }
-        date {
-          match => ["timestamp","ISO8601"]
-          target => "@timestamp"
-          remove_field => ["timestamp"]
-        }
+logstashConfig:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    xpack.monitoring.enabled: false
+logstashPipeline:
+  logstash.conf: |
+    input {
+      beats { port => 5044 }
+    }
+    filter {
+      if [message] =~ /^\{/ {
+        json { source => "message" }
       }
-      output {
-        elasticsearch {
-          hosts => ["http://elk-stack-elasticsearch-master:9200"]
-          index => "logs-%{+YYYY.MM.dd}"
-        }
+      if [message] =~ /health|readiness|liveness/ {
+        drop {}
       }
-  service:
-    ports:
-      - name: beats
-        port: 5044
-        protocol: TCP
-        targetPort: 5044
-  resources:
-    requests: {cpu: "500m", memory: "1Gi"}
-    limits:   {cpu: "1000m", memory: "2Gi"}
+      date {
+        match => ["timestamp", "ISO8601"]
+        target => "@timestamp"
+        remove_field => ["timestamp"]
+      }
+    }
+    output {
+      elasticsearch {
+        hosts => ["http://elk-stack-elasticsearch-master:9200"]
+        index => "logs-%{+YYYY.MM.dd}"
+      }
+    }
+service:
+  ports:
+    - name: beats
+      port: 5044
+      protocol: TCP
+      targetPort: 5044
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
