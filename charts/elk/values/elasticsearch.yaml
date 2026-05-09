@@ -37,7 +37,7 @@ volumeClaimTemplate:
 
 # ── Pod scheduling ───────────────────────────────────────────
 # Spread ES pods across different nodes for true HA
-antiAffinity: "hard"                 # ← hard in EKS (was "soft" in minikube)
+antiAffinity: "soft"                 # ← hard in EKS (was "soft" in minikube)
 
 persistence:
   enabled: true
