@@ -1,14 +1,18 @@
 kibana:
-  protocol: http
   elasticsearchHosts: "http://elk-stack-elasticsearch-master:9200"
+  protocol: http
+  elasticsearchCertificateSecret: ""    # ← tells chart: no cert secret
+  elasticsearchCertificateAuthoritiesFile: ""
   kibanaConfig:
     kibana.yml: |
       server.host: "0.0.0.0"
       elasticsearch.hosts: ["http://elk-stack-elasticsearch-master:9200"]
       xpack.security.enabled: false
-  service:
-    type: ClusterIP
-    port: 5601
+      xpack.fleet.enabled: false
   resources:
-    requests: {cpu: "500m", memory: "1Gi"}
-    limits:   {cpu: "1000m", memory: "2Gi"}
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"

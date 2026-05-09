@@ -1,12 +1,14 @@
 elasticsearch:
   replicas: 1
-  protocol: http
-  createCert: false 
+  createCert: false        # ← stops cert secret creation attempt
+  protocol: http           # ← forces http, not https
   esConfig:
     elasticsearch.yml: |
       cluster.name: "minikube-elk"
       network.host: "0.0.0.0"
       xpack.security.enabled: false
+      xpack.security.transport.ssl.enabled: false
+      xpack.security.http.ssl.enabled: false
       xpack.monitoring.enabled: false
   esJavaOpts: "-Xmx2g -Xms2g"
   resources:

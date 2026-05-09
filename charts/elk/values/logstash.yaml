@@ -1,5 +1,4 @@
 logstash:
-  protocol: http
   logstashConfig:
     logstash.yml: |
       http.host: "0.0.0.0"
