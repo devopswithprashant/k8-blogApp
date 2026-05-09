@@ -1,0 +1,13 @@
+kibana:
+  elasticsearchHosts: "http://elk-stack-elasticsearch-master:9200"
+  kibanaConfig:
+    kibana.yml: |
+      server.host: "0.0.0.0"
+      elasticsearch.hosts: ["http://elk-stack-elasticsearch-master:9200"]
+      xpack.security.enabled: false
+  service:
+    type: ClusterIP
+    port: 5601
+  resources:
+    requests: {cpu: "500m", memory: "1Gi"}
+    limits:   {cpu: "1000m", memory: "2Gi"}

@@ -1,0 +1,18 @@
+# charts/elk/Chart.yaml
+apiVersion: v2
+name: elk-stack
+version: 1.0.0
+type: application
+dependencies:
+  - name: elasticsearch
+    version: "8.5.1"
+    repository: "https://helm.elastic.co"
+  - name: logstash
+    version: "8.5.1"
+    repository: "https://helm.elastic.co"
+  - name: filebeat
+    version: "8.5.1"
+    repository: "https://helm.elastic.co"
+  - name: kibana
+    version: "8.5.1"
+    repository: "https://helm.elastic.co"
