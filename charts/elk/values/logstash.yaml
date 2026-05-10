@@ -1,0 +1,106 @@
+# ============================================================
+# Logstash values — EKS production
+# ============================================================
+
+replicas: 1                          # 2 Logstash pods for HA + load distribution
+
+logstashConfig:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    xpack.monitoring.enabled: false
+    # Allow Logstash enough workers for EKS multi-pod workloads
+    pipeline.workers: 2
+    pipeline.batch.size: 250
+    pipeline.batch.delay: 50
+
+logstashPipeline:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+    }
+
+    filter {
+      # ── Parse JSON formatted app logs (Spring Boot, Next.js etc) ──
+      if [message] =~ /^\{/ {
+        json {
+          source => "message"
+        }
+      }
+
+      # ── Parse plaintext logs with grok ────────────────────────────
+      if "_jsonparsefailure" in [tags] {
+        grok {
+          match => {
+            "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:msg}"
+          }
+          tag_on_failure => ["_grokparsefailure"]
+        }
+      }
+
+      # ── Drop noisy k8s health check logs ─────────────────────────
+      if [message] =~ /health|readiness|liveness|/metrics|/actuator/ {
+        drop {}
+      }
+
+      # ── Parse timestamp into @timestamp ──────────────────────────
+      if [timestamp] {
+        date {
+          match => ["timestamp", "ISO8601"]
+          target => "@timestamp"
+          remove_field => ["timestamp"]
+        }
+      }
+
+      # ── Add environment tag ───────────────────────────────────────
+      mutate {
+        add_field => { "environment" => "production" }
+        add_field => { "cluster" => "eks" }
+      }
+    }
+
+    output {
+      elasticsearch {
+        # Points to the Elasticsearch service inside the cluster
+        hosts => ["http://elasticsearch-master:9200"]
+        # Daily rolling index — logs-2026.05.09
+        index => "logs-%{+YYYY.MM.dd}"
+        # Retry on ES unavailability
+        retry_on_conflict => 5
+      }
+    }
+
+# ── Service so Filebeat can reach Logstash ───────────────────
+service:
+  ports:
+    - name: beats
+      port: 5044
+      protocol: TCP
+      targetPort: 5044
+
+# ── Resources ────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+# ── JVM heap (half of memory limit) ─────────────────────────
+logstashJavaOpts: "-Xmx1g -Xms1g"
+
+# ── Persistence for Logstash queue ───────────────────────────
+persistence:
+  enabled: false                     # enable if you want persistent queues
+
+# ── Pod anti-affinity ────────────────────────────────────────
+# Spread the 2 Logstash pods across different nodes
+antiAffinity: "soft"
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 10

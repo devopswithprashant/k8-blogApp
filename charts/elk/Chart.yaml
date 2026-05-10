@@ -1,0 +1,22 @@
+apiVersion: v2
+name: elk-logging
+description: ELK stack umbrella chart for EKS
+version: 1.0.0
+type: application
+
+dependencies:
+  - name: elasticsearch
+    version: "7.17.3"
+    repository: "https://helm.elastic.co"
+
+  - name: logstash
+    version: "7.17.3"
+    repository: "https://helm.elastic.co"
+
+  - name: filebeat
+    version: "7.17.3"
+    repository: "https://helm.elastic.co"
+
+  - name: kibana
+    version: "7.17.3"
+    repository: "https://helm.elastic.co"

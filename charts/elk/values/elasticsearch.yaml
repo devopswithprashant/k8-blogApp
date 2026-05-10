@@ -1,0 +1,70 @@
+# ============================================================
+# Elasticsearch values — EKS production
+# ============================================================
+
+replicas: 3                         # 3 nodes for HA (1 master + 2 data)
+
+clusterName: "eks-elk-cluster"
+
+esConfig:
+  elasticsearch.yml: |
+    cluster.name: "eks-elk-cluster"
+    network.host: "0.0.0.0"
+    xpack.security.enabled: false    # enable + add TLS when ready for prod security
+    xpack.monitoring.enabled: false
+
+# JVM heap — always set to HALF of container memory limit
+# container limit = 4Gi → heap = 2g
+esJavaOpts: "-Xmx2g -Xms2g"
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "3Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+
+# ── Storage ──────────────────────────────────────────────────
+# gp2 is the standard EKS storage class (EBS volumes)
+# Use gp3 if your EKS cluster has the gp3 storage class installed
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: "gp2-csi"            # ← EKS specific (was "standard" in minikube)
+  resources:
+    requests:
+      storage: "30Gi"                # ← EKS has real disk, use proper size
+
+# ── Pod scheduling ───────────────────────────────────────────
+# Spread ES pods across different nodes for true HA
+antiAffinity: "hard"                 # ← hard in EKS (was "soft" in minikube)
+
+persistence:
+  enabled: true
+  storageClass: "gp2-csi"              # ← add this line too
+  size: "30Gi"
+  accessMode: ReadWriteOnce
+
+# ── Tolerations/Node selector ────────────────────────────────
+# Uncomment if you have dedicated logging nodes with taints
+# nodeSelector:
+#   role: logging
+# tolerations:
+#   - key: "logging"
+#     operator: "Equal"
+#     value: "true"
+#     effect: "NoSchedule"
+
+# ── Update strategy ──────────────────────────────────────────
+updateStrategy: RollingUpdate
+
+# ── Health check ─────────────────────────────────────────────
+# Give ES enough time to start on EKS before k8s kills it
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 10
+
+# ── Pod disruption budget ────────────────────────────────────
+maxUnavailable: 1

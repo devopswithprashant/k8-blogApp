@@ -1,0 +1,53 @@
+# ============================================================
+# Kibana values — EKS production
+# ============================================================
+
+elasticsearchHosts: "http://elasticsearch-master:9200"
+
+kibanaConfig:
+  kibana.yml: |
+    server.host: "0.0.0.0"
+    elasticsearch.hosts: ["http://elasticsearch-master:9200"]
+    xpack.security.enabled: false
+    # Increase memory for larger dashboards
+    server.maxPayloadBytes: 10485760
+
+# ── Resources ────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+# ── Service ──────────────────────────────────────────────────
+# LoadBalancer — exposes Kibana via external load balancer
+service:
+  type: LoadBalancer
+  port: 5601
+
+# ── Ingress — expose Kibana via ALB on EKS ───────────────────
+# Requires AWS Load Balancer Controller installed on your EKS cluster
+# Uncomment when ready to expose publicly
+#
+# ingress:
+#   enabled: true
+#   annotations:
+#     kubernetes.io/ingress.class: alb
+#     alb.ingress.kubernetes.io/scheme: internet-facing
+#     alb.ingress.kubernetes.io/target-type: ip
+#   hosts:
+#     - host: kibana.yourdomain.com
+#       paths:
+#         - path: /
+#   tls: []
+
+# ── Readiness probe ──────────────────────────────────────────
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 10
+
+replicas: 1

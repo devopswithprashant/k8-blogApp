@@ -1,0 +1,68 @@
+# ============================================================
+# Filebeat values — EKS production
+# ============================================================
+# Filebeat runs as a DaemonSet — 1 pod per EKS node automatically
+# It tails /var/log/containers/*.log on every node
+
+daemonset:
+  hostNetworking: true
+
+  # ── Filebeat config ────────────────────────────────────────
+  filebeatConfig:
+    filebeat.yml: |
+      filebeat.inputs:
+      - type: container
+        paths:
+          - /var/log/containers/*.log
+        # Exclude ELK's own logs to avoid infinite loops
+        exclude_files:
+          - '.*elk-stack.*'
+          - '.*logstash.*'
+          - '.*elasticsearch.*'
+          - '.*kibana.*'
+        processors:
+          - add_kubernetes_metadata:
+              host: ${NODE_NAME}
+              matchers:
+                - logs_path:
+                    logs_path: "/var/log/containers/"
+          # Add AWS region tag
+          - add_fields:
+              target: cloud
+              fields:
+                provider: aws
+                region: ap-south-1      # ← change to your AWS region
+
+      # Filebeat internal monitoring off (no xpack license needed)
+      monitoring.enabled: false
+
+      output.logstash:
+        hosts: ["elk-logging-logstash-headless:5044"]
+        # Retry settings for EKS network blips
+        timeout: 15
+        max_retries: 3
+        bulk_max_size: 2048
+
+  # ── Pass node name as env var for k8s metadata ───────────────
+  extraEnvs:
+    - name: NODE_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: spec.nodeName
+
+  # ── Tolerations — run on ALL nodes including tainted ones ─────
+  tolerations:
+    - operator: Exists
+
+  # ── Resources — keep Filebeat light ──────────────────────────
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "200Mi"
+    limits:
+      cpu: "500m"
+      memory: "400Mi"
+
+  # ── Volume mounts for reading container logs ─────────────────
+  # These are mounted automatically by the chart
+  # /var/log/containers, /var/log/pods, /var/lib/docker/containers
