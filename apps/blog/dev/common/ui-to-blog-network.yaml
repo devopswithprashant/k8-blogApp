@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-frontend-to-backend
+  name: allow-ui-to-blog-backend
   namespace: dwp-dev
 spec:
   podSelector:
@@ -13,7 +13,7 @@ spec:
     - from:
       - podSelector:
           matchLabels:
-            app: blog-frontend
+            app: dwp-platform-ui
       ports:
         - protocol: TCP
-          port: 9090
+          port: 8080
