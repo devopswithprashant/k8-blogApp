@@ -10,7 +10,7 @@ spec:
     app: blog-backend
   ports:
     - protocol: TCP
-      port: 9090
-      targetPort: 9090
+      port: 8080
+      targetPort: 8080
       name: http
   type: ClusterIP

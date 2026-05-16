@@ -1,0 +1,64 @@
+# Example: dwp-platform-ui Deployment/Service for Prometheus discovery.
+# Deploy in namespace dwp-platform (see k8s/ui/ for the full manifest with nginx-exporter sidecar).
+#
+# Central Prometheus (monitoring/prometheus-configmap.yaml) scrapes:
+#   - job dwp-platform-ui       → pod annotations, port 3000, path /api/metrics
+#   - job dwp-platform-ui-nginx → pod IP:9113 (nginx-prometheus-exporter sidecar)
+#   - job blackbox-dwp-platform-ui → Service URL /health and /
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dwp-platform-ui
+  namespace: dwp-platform
+  labels:
+    app: dwp-platform-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dwp-platform-ui
+  template:
+    metadata:
+      labels:
+        app: dwp-platform-ui
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      containers:
+        - name: ui
+          image: your-registry/dwp-ui:latest
+          ports:
+            - name: http
+              containerPort: 80
+            - name: nextjs-metrics
+              containerPort: 3000
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.4.0
+          args:
+            - -nginx.scrape-uri=http://127.0.0.1:80/nginx_status
+          ports:
+            - name: nginx-metrics
+              containerPort: 9113
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dwp-platform-ui
+  namespace: dwp-platform
+  labels:
+    app: dwp-platform-ui
+spec:
+  selector:
+    app: dwp-platform-ui
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: nextjs-metrics
+      port: 3000
+      targetPort: nextjs-metrics
+    - name: nginx-metrics
+      port: 9113
+      targetPort: nginx-metrics

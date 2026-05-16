@@ -21,7 +21,7 @@ spec:
           imagePullPolicy: Never   # ← important!
           #image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.0.11
           ports:
-           - containerPort: 9090
+           - containerPort: 8080
           env:
           - name: SPRING_DATASOURCE_URL
             value: jdbc:postgresql://postgres:5432/blogdb?serverTimezone=UTC
@@ -30,7 +30,7 @@ spec:
           - name: SPRING_DATASOURCE_PASSWORD
             value: bloguser
           - name: SERVER_PORT
-            value: "9090"
+            value: "8080"
 
 
 
