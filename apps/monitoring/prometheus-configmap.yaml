@@ -16,15 +16,15 @@ data:
         static_configs:
           - targets: ["localhost:9090"]
 
-      # Spring blog-service (pods labeled app=blog-service with prometheus.io/scrape=true)
-      - job_name: blog-service
+      # Spring blog-backend (pods labeled app=blog-backend with prometheus.io/scrape=true)
+      - job_name: blog-backend
         metrics_path: /actuator/prometheus
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_label_app]
             action: keep
-            regex: blog-service
+            regex: blog-backend
           - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
             action: keep
             regex: "true"
