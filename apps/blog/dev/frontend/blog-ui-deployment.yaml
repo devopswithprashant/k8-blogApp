@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: dwp-platform-ui
     app.kubernetes.io/component: frontend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: dwp-platform-ui
@@ -26,7 +26,7 @@ spec:
       containers:
         - name: ui
           # Replace with your registry image built from this repo's Dockerfile
-          image: dwp-ui:v4
+          image: dwp-ui:v5
           imagePullPolicy: Never   # ← important!
           ports:
             - name: http
