@@ -1,0 +1,79 @@
+# This deployment is for the frontend app of the dwp application. It includes both the Next.js application and an Nginx Prometheus exporter for monitoring.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dwp-platform-ui
+  namespace: dwp-stage
+  labels:
+    app: dwp-platform-ui
+    app.kubernetes.io/name: dwp-platform-ui
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dwp-platform-ui
+  template:
+    metadata:
+      labels:
+        app: dwp-platform-ui
+        app.kubernetes.io/name: dwp-platform-ui
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      containers:
+        - name: ui
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/ui:v1.3.0
+          ports:
+            - name: http
+              containerPort: 80
+            - name: nextjs-metrics
+              containerPort: 3000
+          env:
+            - name: BACKEND_SERVICE_HOST
+              value: blog-service
+            - name: BACKEND_SERVICE_PORT
+              value: "8080"
+            - name: SERVICE_NAME
+              value: ui
+            - name: NODE_ENV
+              value: stage
+            - name: LOG_LEVEL
+              value: info
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+        # Shares the pod network namespace; scrapes stub_status on localhost:80
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.4.0
+          args:
+            - -nginx.scrape-uri=http://127.0.0.1:80/nginx_status
+          ports:
+            - name: nginx-metrics
+              containerPort: 9113
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
