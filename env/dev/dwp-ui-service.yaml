@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dwp-ui-service
+  namespace: dwp-dev
+  labels:
+    app: dwp-platform-ui
+spec:
+  selector:
+    app: dwp-platform-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+  type: LoadBalancer
