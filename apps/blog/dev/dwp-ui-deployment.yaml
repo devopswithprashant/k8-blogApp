@@ -26,7 +26,7 @@ spec:
       containers:
         - name: ui
           # Replace with your registry image built from this repo's Dockerfile
-          image: dwp-ui:v1.1.5
+          image: dwp-ui:v1.1.6
           imagePullPolicy: Never   # ← important!
           ports:
             - name: http
