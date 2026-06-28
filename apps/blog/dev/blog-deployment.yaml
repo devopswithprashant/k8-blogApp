@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: blog-backend
-          image: blog-service:v5
+          image: blog-service:v1.1.0
           imagePullPolicy: Never   # ← important!
           #image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.0.11
           ports:
