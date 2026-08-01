@@ -17,6 +17,7 @@ spec:
       containers:
         - name: postgres-auth
           image: postgres:16
+          imagePullPolicy: Never   # ← important!
           ports:
             - containerPort: 5432
           envFrom:
