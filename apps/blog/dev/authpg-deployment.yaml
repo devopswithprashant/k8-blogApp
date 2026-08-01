@@ -2,35 +2,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgres
+  name: postgres-auth
   namespace: dwp-dev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-auth
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-auth
     spec:
       containers:
-        - name: postgres
+        - name: postgres-auth
           image: postgres:16
           ports:
             - containerPort: 5432
           envFrom:
             - secretRef:
-                name: pg-secret
+                name: authpg-secret
           volumeMounts:
-            - name: pg-storage
+            - name: authpg-storage
               mountPath: /var/lib/postgresql/data
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "bloguser", "-d", "blogdb"]
+              command: ["pg_isready", "-U", "authuser", "-d", "authdb"]
             initialDelaySeconds: 5
             periodSeconds: 5
       volumes:
-        - name: pg-storage
+        - name: authpg-storage
           persistentVolumeClaim:
-            claimName: pg-pvc
+            claimName: authpg-pvc

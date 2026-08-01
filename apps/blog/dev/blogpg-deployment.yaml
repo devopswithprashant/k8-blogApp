@@ -1,0 +1,36 @@
+# pg-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-blog
+  namespace: dwp-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-blog
+  template:
+    metadata:
+      labels:
+        app: postgres-blog
+    spec:
+      containers:
+        - name: postgres-blog
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: blogpg-secret
+          volumeMounts:
+            - name: blogpg-storage
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "bloguser", "-d", "blogdb"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: blogpg-storage
+          persistentVolumeClaim:
+            claimName: blogpg-pvc

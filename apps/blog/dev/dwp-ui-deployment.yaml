@@ -26,7 +26,7 @@ spec:
       containers:
         - name: ui
           # Replace with your registry image built from this repo's Dockerfile
-          image: dwp-ui:v1.1.7
+          image: dwp-ui:v1.2.0-SNAPSHOT
           imagePullPolicy: Never   # ← important!
           ports:
             - name: http
@@ -38,6 +38,10 @@ spec:
               value: blog-service
             - name: BACKEND_SERVICE_PORT
               value: "8080"
+            - name: AUTH_SERVICE_HOST
+              value: auth-service
+            - name: AUTH_SERVICE_PORT
+              value: "8081"
             - name: SERVICE_NAME
               value: ui
             - name: NODE_ENV

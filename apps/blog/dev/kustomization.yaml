@@ -3,12 +3,18 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
-  - ui-to-blog-network.yaml
-  - pg-pvc.yaml
-  - pg-secret.yaml
-  - pg-deployment.yaml
-  - pg-service.yaml
+  - ui-to-backend-network-rule.yaml
+  - blogpg-pvc.yaml
+  - blogpg-secret.yaml
+  - blogpg-deployment.yaml
+  - blogpg-service.yaml
+  - authpg-pvc.yaml
+  - authpg-secret.yaml
+  - authpg-deployment.yaml
+  - authpg-service.yaml
   - blog-deployment.yaml
   - blog-service.yaml
+  - auth-deployment.yaml
+  - auth-service.yaml
   - dwp-ui-deployment.yaml
   - dwp-ui-service.yaml

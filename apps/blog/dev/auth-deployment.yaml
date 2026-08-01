@@ -1,40 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: blog-backend
+  name: auth-backend
   namespace: dwp-dev
   labels:
-    app: blog-backend
+    app: auth-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: blog-backend
+      app: auth-backend
   template:
     metadata:
       labels:
-        app: blog-backend
+        app: auth-backend
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
+        prometheus.io/port: "8081"
         prometheus.io/path: "/actuator/prometheus"
     spec:
       containers:
-        - name: blog-backend
-          image: blog-service:v1.1.0
+        - name: auth-backend
+          image: auth-service:v0.0.1-SNAPSHOT
           imagePullPolicy: Never   # ← important!
-          #image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.0.11
+          #image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/auth:v1.0.11
           ports:
-           - containerPort: 8080
+           - containerPort: 8081
           env:
           - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://postgres-blog:5432/blogdb?serverTimezone=UTC
+            value: jdbc:postgresql://postgres-auth:5432/authdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
-            value: bloguser
+            value: authuser
           - name: SPRING_DATASOURCE_PASSWORD
-            value: bloguser
+            value: authuser
           - name: SERVER_PORT
-            value: "8080"
+            value: "8081"
 
 
 
