@@ -3,7 +3,9 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
-  - ui-to-blog-network.yaml
+  - ui-to-backend-network-rule.yaml
+  - auth-deployment.yaml
+  - auth-service.yaml
   - blog-deployment.yaml
   - blog-service.yaml
   - dwp-ui-deployment.yaml
