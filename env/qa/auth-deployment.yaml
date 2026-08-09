@@ -26,11 +26,11 @@ spec:
            - containerPort: 8081
           env:
           - name: SPRING_DATASOURCE_URL
-            value: jdbc:postgresql://postgres-auth:5432/authdb?serverTimezone=UTC
+            value: jdbc:postgresql://dwp-platform-nonprod.ch8cowcymvme.eu-west-1.rds.amazonaws.com:5432/qaauthdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
-            value: authuser
+            value: qaauthuser
           - name: SPRING_DATASOURCE_PASSWORD
-            value: authuser
+            value: qaauthuser
           - name: SERVER_PORT
             value: "8081"
 

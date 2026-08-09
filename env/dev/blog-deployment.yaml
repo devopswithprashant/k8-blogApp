@@ -28,9 +28,9 @@ spec:
           - name: SPRING_DATASOURCE_URL
             value: jdbc:postgresql://dwp-platform-nonprod.ch8cowcymvme.eu-west-1.rds.amazonaws.com:5432/devblogdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
-            value: devuser
+            value: devbloguser
           - name: SPRING_DATASOURCE_PASSWORD
-            value: devuser
+            value: devbloguser
           - name: SERVER_PORT
             value: "8080"
 
