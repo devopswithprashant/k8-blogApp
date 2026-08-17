@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-backend
+  namespace: dwp-prod
+  labels:
+    app: auth-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-backend
+  template:
+    metadata:
+      labels:
+        app: auth-backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8081"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: auth-backend
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/auth:v0.0.2
+          ports:
+           - containerPort: 8081
+          env:
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:postgresql://dwp-platform-nonprod.ch8cowcymvme.eu-west-1.rds.amazonaws.com:5432/prodauthdb?serverTimezone=UTC
+          - name: SPRING_DATASOURCE_USERNAME
+            value: prodauthuser
+          - name: SPRING_DATASOURCE_PASSWORD
+            value: prodauthuser
+          - name: SERVER_PORT
+            value: "8081"
+
+
+
+            

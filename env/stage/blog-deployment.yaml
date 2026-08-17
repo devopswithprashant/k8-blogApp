@@ -21,16 +21,16 @@ spec:
     spec:
       containers:
         - name: blog-backend
-          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.4.0
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/blog:v1.4.2
           ports:
            - containerPort: 8080
           env:
           - name: SPRING_DATASOURCE_URL
             value: jdbc:postgresql://dwp-platform-nonprod.ch8cowcymvme.eu-west-1.rds.amazonaws.com:5432/stageblogdb?serverTimezone=UTC
           - name: SPRING_DATASOURCE_USERNAME
-            value: stageuser
+            value: stagebloguser
           - name: SPRING_DATASOURCE_PASSWORD
-            value: stageuser
+            value: stagebloguser
           - name: SERVER_PORT
             value: "8080"
 

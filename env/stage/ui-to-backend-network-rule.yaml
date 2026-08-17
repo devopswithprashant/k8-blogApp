@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ui-to-blog-backend
+  namespace: dwp-stage
+spec:
+  podSelector:
+    matchLabels:
+      app: blog-backend
+  policyTypes:
+  - Ingress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: dwp-platform-ui
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ui-to-auth-backend
+  namespace: dwp-stage
+spec:
+  podSelector:
+    matchLabels:
+      app: auth-backend
+  policyTypes:
+  - Ingress
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: dwp-platform-ui
+      ports:
+        - protocol: TCP
+          port: 8081
