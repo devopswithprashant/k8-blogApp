@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: auth-backend
-          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/np/auth:0.0.2-SNAPSHOT-9f1d42cf3c0b0b8236a694228ecdf59c75c530ab
+          image: 850756192530.dkr.ecr.us-east-1.amazonaws.com/dwp/np/auth:0.0.2-SNAPSHOT-c0f3c532a4319effdd8eee57dfff87272c49a2b9
           ports:
            - containerPort: 8081
           env:
